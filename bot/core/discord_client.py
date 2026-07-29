@@ -12,6 +12,7 @@ from bot.config import settings
 from bot.core.meshtastic_io import connect_interface
 from bot.core.queues import discordtomesh, meshtodiscord, nodelistq
 
+debug = True
 
 class MeshBot(discord.Client):
     def __init__(self, *args, **kwargs):

@@ -11,7 +11,7 @@ class Settings:
         self.channel_id = int(config["discord_channel_id"])
         self.channel_names = config["channel_names"]
         self.time_zone = config["time_zone"]
-        self.color = int(config["color"].lstrip('#'), 16)
+        self.color = int(config["color"].lstrip('#'), 16) # Convert from hex to int
 
     @staticmethod
     def _load_config(config_path):

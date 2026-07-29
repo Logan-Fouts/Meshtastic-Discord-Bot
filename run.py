@@ -1,6 +1,5 @@
 import asyncio
 import logging
-
 import discord
 
 from bot.cogs.commands import register_commands

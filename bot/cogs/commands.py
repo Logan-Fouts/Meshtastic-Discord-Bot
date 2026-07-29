@@ -8,6 +8,7 @@ from bot.core.queues import discordtomesh, nodelistq
 from bot.ui.ui import HelpView
 from bot.utils.utils import formatted_now
 
+debug = True
 
 def register_commands(client):
     """Attaches all slash commands to the given MeshBot's command tree."""
@@ -64,7 +65,10 @@ def register_commands(client):
     @client.tree.command(name="reply", description="Reply to the last message sent whether thats a dm to a node or broadcast to a channel.")
     async def reply(interaction: discord.Interaction, message: str):
         dest = queues.autoreplydest
-        print("DEBUG reply() sees queues.autoreplydest =", queues.autoreplydest)
+
+        if debug:
+            print("DEBUG reply() sees queues.autoreplydest =", queues.autoreplydest)
+
         if dest is None:
             error_embed = discord.Embed(title="Error", description="No auto-reply destination.", color=settings.color)
             await interaction.response.send_message(embed=error_embed, ephemeral=True)
