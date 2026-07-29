@@ -4,6 +4,7 @@ import meshtastic.serial_interface
 from pubsub import pub
 
 from bot.config import settings
+from bot.core import queues
 from bot.core.queues import meshtodiscord
 from bot.utils.utils import formatted_now
 
@@ -44,22 +45,26 @@ def on_receive_mesh(packet, interface):
             from_long_name = get_long_name(packet['fromId'], nodes)
             to_long_name = get_long_name(packet['toId'], nodes) if packet['toId'] != '^all' else 'All Nodes'
 
-            embed = discord.Embed(title="Message Received", description=packet['decoded']['text'], color=settings.color)
-            embed.add_field(name="From Node", value=f"{from_long_name} ({packet['fromId']})", inline=True)
+            if packet['toId'] == '^all':
+                destination = "brdcst"
+                queues.autoreplydest = "broadcast"
+            else:
+                destination = "dm"
+                queues.autoreplydest = packet['fromId']
+
+            print("Set Auto Reply To:", queues.autoreplydest)
+
+            embed = discord.Embed(
+                title=f"{from_long_name} ({packet['fromId']})",
+                description=packet['decoded']['text'],
+                color=settings.color
+            )
+            embed.add_field(name="Type", value=destination, inline=False)
             embed.set_footer(text=f"{current_time}")
 
-            if packet['toId'] == '^all':
-                embed.add_field(name="To Channel", value=channel_name, inline=True)
-            else:
-                embed.add_field(name="To Node", value=f"{to_long_name} ({packet['toId']})", inline=True)
-
             meshtodiscord.put(embed)
-
-    except KeyError:  # Catch empty packet.
-        pass
-    except Exception as e:  # Catch any other exceptions.
-        print(f"Unexpected error: {e}")  # For debugging.
-        pass
+    except Exception as e:
+        print(f"Error handling mesh packet: {e}")
 
 
 def connect_interface():

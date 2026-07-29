@@ -8,3 +8,6 @@ discordtomesh = queue.Queue()
 
 # Signal queue: presence of an item means "please post the current node list"
 nodelistq = queue.Queue()
+
+# Auto reply destination
+autoreplydest = None # TODO: Time this out

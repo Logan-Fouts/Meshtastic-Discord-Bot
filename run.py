@@ -8,16 +8,22 @@ from bot.config import settings
 from bot.core.discord_client import MeshBot
 
 
-def run_discord_bot():
+async def run_discord_bot():
     client = MeshBot(intents=discord.Intents.default())
     register_commands(client)
+
+    @client.event
+    async def on_ready():
+        await client.tree.sync()
+        print(f"Logged in as {client.user}")
+
     try:
-        client.run(settings.token)
+        await client.start(settings.token)
     except Exception as e:
         logging.error(f"An error occurred while running the bot: {e}")
     finally:
-        asyncio.run(client.close())
+        await client.close()
 
 
 if __name__ == "__main__":
-    run_discord_bot()
+    asyncio.run(run_discord_bot())

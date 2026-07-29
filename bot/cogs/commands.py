@@ -3,6 +3,7 @@ import asyncio
 import discord
 
 from bot.config import settings
+from bot.core import queues
 from bot.core.queues import discordtomesh, nodelistq
 from bot.ui.ui import HelpView
 from bot.utils.utils import formatted_now
@@ -17,6 +18,7 @@ def register_commands(client):
         await interaction.response.defer(ephemeral=False)
 
         help_text = ("**Command List**\n"
+                     "`/reply` - Send a message to most recent recived message source.\n"
                      "`/sendid` - Send a message to another node.\n"
                      "`/sendnum` - Send a message to another node.\n"
                      "`/active` - Shows all active nodes.\n"
@@ -42,8 +44,8 @@ def register_commands(client):
             # Convert hexadecimal node ID to decimal.
             nodenum = int(nodeid, 16)
 
-            embed = discord.Embed(title="Sending Message", description=message, color=settings.color)
-            embed.add_field(name="To Node:", value=f"!{nodeid}", inline=True)
+            embed = discord.Embed(title="You", description=message, color=settings.color)
+            embed.add_field(name="Destination:", value=f"!{nodeid}", inline=True)
             embed.set_footer(text=formatted_now())
             await interaction.response.send_message(embed=embed, ephemeral=False)
             discordtomesh.put(f"nodenum={nodenum} {message}")
@@ -54,10 +56,33 @@ def register_commands(client):
     @client.tree.command(name="sendnum", description="Send a message to a specific node.")
     async def sendnum(interaction: discord.Interaction, nodenum: int, message: str):
         embed = discord.Embed(title="Sending Message", description=message, color=settings.color)
-        embed.add_field(name="To Node:", value=str(nodenum), inline=True)
+        embed.add_field(name="To Node:", value=str(nodenum), inline=False)
         embed.set_footer(text=formatted_now())
         await interaction.response.send_message(embed=embed)
         discordtomesh.put(f"nodenum={nodenum} {message}")
+
+    @client.tree.command(name="reply", description="Reply to the last message sent whether thats a dm to a node or broadcast to a channel.")
+    async def reply(interaction: discord.Interaction, message: str):
+        dest = queues.autoreplydest
+        print("DEBUG reply() sees queues.autoreplydest =", queues.autoreplydest)
+        if dest is None:
+            error_embed = discord.Embed(title="Error", description="No auto-reply destination.", color=settings.color)
+            await interaction.response.send_message(embed=error_embed, ephemeral=True)
+            return
+
+        embed = discord.Embed(title="Sending Message", description=message, color=settings.color)
+        embed.add_field(name="To:", value=str(dest), inline=False)
+        embed.set_footer(text=formatted_now())
+        await interaction.response.send_message(embed=embed)
+
+        if dest == "broadcast":
+            discordtomesh.put(f"channel={0} {message}")
+            return
+
+        if dest.startswith('!'):
+            dest = dest[1:]
+
+        discordtomesh.put(f"nodenum={int(dest, 16)} {message}")
 
     # Dynamically create one command per configured mesh channel.
     def _make_channel_command(index: int, name: str):
