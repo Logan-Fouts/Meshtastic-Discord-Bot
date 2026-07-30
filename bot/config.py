@@ -1,3 +1,4 @@
+import os
 import json
 import logging
 
@@ -7,8 +8,8 @@ class Settings:
 
     def __init__(self, config_path="config.json"):
         config = self._load_config(config_path)
-        self.token = config["discord_bot_token"]
-        self.channel_id = int(config["discord_channel_id"])
+        self.token = os.environ["DISCORD_TOKEN"]
+        self.channel_id = int(os.environ["DISCORD_CHANNEL_ID"])
         self.channel_names = config["channel_names"]
         self.time_zone = config["time_zone"]
         self.color = int(config["color"].lstrip('#'), 16) # Convert from hex to int

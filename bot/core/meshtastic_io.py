@@ -8,7 +8,7 @@ from bot.core import queues
 from bot.core.queues import meshtodiscord
 from bot.utils.utils import formatted_now
 
-debug = True
+debug = False
 
 def on_connection_mesh(interface, topic=pub.AUTO_TOPIC):
     print(interface.myInfo)

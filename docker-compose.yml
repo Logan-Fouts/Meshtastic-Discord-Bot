@@ -1,0 +1,11 @@
+services:
+  meshbot:
+    build: .
+    container_name: meshtastic-discord-bot
+    restart: unless-stopped
+    devices:
+      - "/dev/ttyUSB0:/dev/ttyUSB0"
+    env_file:
+      - .env
+    volumes:
+      - ./config.yaml:/app/config.yaml:ro

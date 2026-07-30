@@ -8,7 +8,7 @@ from bot.core.queues import discordtomesh, nodelistq
 from bot.ui.ui import HelpView
 from bot.utils.utils import formatted_now
 
-debug = True
+debug = False
 
 def register_commands(client):
     """Attaches all slash commands to the given MeshBot's command tree."""
