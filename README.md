@@ -1,78 +1,118 @@
-<h1 align="center">:pager::satellite: Meshtastic Discord Bot :satellite::pager:</h1>
-
-<p align="center">
-  <img src="https://i.imgur.com/oFp9Hk0.jpeg">
-</p>
+<h1 align="center">Meshtastic Discord Bot</h1>
 
 ## Purpose
-This Discord bot is used to communicate directly with the [Meshtastic](https://meshtastic.org/) network using a Meshtastic compatable device.
 
-Having a Discord bot directly connected to the Meshtastic network allows users to test their devices and get instant feedback on whether another device has received their message.
-It also allows the user to communicate on their local network no matter where they are in the world.
+This Discord bot bridges a [Meshtastic](https://meshtastic.org/) mesh network directly into a Discord server, using a Meshtastic-compatible device connected over serial/USB.
 
-## Screenshots
+Having a Discord bot directly connected to the Meshtastic network lets multiple user interact with the mesh through one device and lessesn the barrier of entry for less technical users. Also, test your devices and get instant feedback on whether another node has received a message. It also lets you communicate on your local mesh network from anywhere in the world, right from Discord.
 
-<p float="left">
-  <img align="center" src="https://i.imgur.com/gOznvfX.png" width="350" height="175"/>
-  <img align="right" src="https://i.imgur.com/NiL2Ow2.png" width="350" height="175"/>
-</p>
+This project was inspired by the [Meshtastic Discord Bridge](https://github.com/raudette/meshtastic_discord_bridge) created by [raudette](https://github.com/raudette).
 
-<p float="left">
-  <img align="center" src="https://i.imgur.com/jCrQDW9.png" width="350" height="175"/>
-  <img align="right" src="https://i.imgur.com/R8iTtPF.png" width="350" height="175"/>
-</p>
+## Requirements
 
-<p float="left">
-  <img align="center" src="https://i.imgur.com/84trvDK.png" width="950" height="300"/>
-</p>
+- Python 3.11+ (if running without Docker)
+- A [Meshtastic-compatible device](https://meshtastic.org/docs/hardware/devices/) connected to the host machine via serial/USB
+- A Discord bot application and token (see below)
+- Docker + Docker Compose (optional, if running containerized) recommended
 
-## Setup
-The following must be established in order for the bot to operate successfully:
-- A Meshtastic compatable device must be connected via a serial connection to the device operating the bot.
-  - A list of Meshtastic compatable devices can be found [here](https://meshtastic.org/docs/hardware/devices/).
-  - Users with multiple mesh devices connected to the host will need to define the port they want the bot to utilize.
-This can be done by changing line 116:
-    - From: `self.iface = meshtastic.serial_interface.SerialInterface()`
-    - To: `self.iface = meshtastic.serial_interface.SerialInterface(devPath="/dev/YOUR_PORT")`
-- Update the variables outlined in the next section.
+## Creating a Discord Bot
 
-## Variables
-Update the following variables in the `config.json` file:
-- Replace `YOUR_DISCORD_BOT_TOKEN` with your Discord Bot Token.
-  - Instructions on how to create a Discord bot can be found [here](https://discordpy.readthedocs.io/en/stable/discord.html).
-- Replace `YOUR_DISCORD_CHANNEL_ID` with the channel ID from the server the bot will be communicating in.
-  - Instructions on how to get the channel ID can be found [here](https://support.discord.com/hc/en-us/articles/206346498-Where-can-I-find-my-User-Server-Message-ID).
-- Replace `YOUR_TIME_ZONE` with your zime zone.
-  - A list of available timezones can be found [here](https://gist.github.com/heyalexej/8bf688fd67d7199be4a1682b3eec7568).
-- Replace all channel names with the channel names you've setup on your radio.
-  - All channel names must be unique!
-  - If you do not use all seven channels, that's fine. Just leave the unused ones as they are or remove its entire entry from the `config.json` file.
+Before configuring the bot, you'll need a Discord application and bot token:
+
+1. Go to the [Discord Developer Portal](https://discord.com/developers/applications) and click **New Application**.
+2. Under **Bot**, click **Reset Token** (or **Add Bot** if prompted) and copy the token somewhere safe — you'll need it for the `DISCORD_TOKEN` variable below. Treat this token like a password; never commit it to source control.
+3. Under **Bot** settings, make sure **Message Content Intent** is enabled if you plan to use any features that read message content.
+4. Under **OAuth2 → URL Generator**, select the `bot` and `applications.commands` scopes, then under **Bot Permissions** select at minimum: `Send Messages`, `Read Message History`, `Use Slash Commands`, and `Embed Links`.
+5. Copy the generated URL, open it in a browser, and invite the bot to your server.
+6. Enable Developer Mode in Discord (User Settings → Advanced → Developer Mode), then right-click the channel you want the bot to post in and select **Copy Channel ID**. This is your `DISCORD_CHANNEL_ID`.
+
+More detailed walkthroughs are available in [discord.py's bot setup guide](https://discordpy.readthedocs.io/en/stable/discord.html) and [Discord's own docs on finding IDs](https://support.discord.com/hc/en-us/articles/206346498-Where-can-I-find-my-User-Server-Message-ID).
+
+## Configuration
+
+The bot is configured entirely through environment variables. Create a `.env` file in the project root:
+
+```
+DISCORD_TOKEN=your-discord-bot-token
+DISCORD_CHANNEL_ID=your-discord-channel-id
+TIME_ZONE=America/New_York
+COLOR=0x00FF00
+```
+
+Notes:
+- `TIME_ZONE` should be a valid [tz database name](https://gist.github.com/heyalexej/8bf688fd67d7199be4a1682b3eec7568) (e.g. `America/Chicago`, `Europe/London`).
+- Channel-to-command mappings (which mesh channel index maps to which slash command name) are also defined in your config — update these to match the channel names configured on your radio. All channel names must be unique. If you don't use all available channels, you can leave the extras unset or remove them.
+- Never commit your `.env` file. Add it to `.gitignore`.
+
+> Adjust the variable names above to match whatever your `bot/config.py` actually reads via `os.environ[...]` — update this section if your config differs.
+
+## Running Locally (without Docker)
+
+1. Clone the repository and enter the project directory:
+   ```bash
+   git clone <your-fork-url>
+   cd Meshtastic-Discord-Bot
+   ```
+2. Create and activate a virtual environment:
+   ```bash
+   python3 -m venv venv
+   source venv/bin/activate
+   ```
+3. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+4. Create your `.env` file as described above, and make sure it's loaded into your shell environment (e.g. via `export $(cat .env | xargs)` or a tool like `python-dotenv`, depending on how `config.py` reads it).
+5. Connect your Meshtastic device via USB. If you have multiple serial devices connected and need to target a specific one, update the `SerialInterface()` call in `bot/core/meshtastic_io.py` to pass an explicit port:
+   ```python
+   meshtastic.serial_interface.SerialInterface(devPath="/dev/YOUR_PORT")
+   ```
+6. Run the bot:
+   ```bash
+   python3 run.py
+   ```
+
+## Running with Docker
+
+1. Make sure Docker and the Docker Compose plugin are installed:
+   ```bash
+   sudo apt install docker.io docker-compose-v2
+   sudo usermod -aG docker $USER   # then log out/in, or run `newgrp docker`
+   ```
+2. Create your `.env` file as described above.
+3. Identify the serial device path for your Meshtastic radio:
+   ```bash
+   ls /dev/ttyUSB* /dev/serial/by-id/
+   ```
+4. Update `docker-compose.yml` with the correct device path if it differs from `/dev/ttyUSB0`.
+5. Build and start the container:
+   ```bash
+   docker compose up --build -d
+   ```
+6. View logs:
+   ```bash
+   docker compose logs -f
+   ```
+
+**Note on serial devices in Docker:** the container needs direct access to the Meshtastic device's serial port. If you're running in an environment where `/dev/ttyUSB0` doesn't appear or changes on reconnect (e.g. WSL2, which doesn't pass through USB devices by default), you may need [usbipd-win](https://github.com/dorssel/usbipd-win) on Windows, or a stable path from `/dev/serial/by-id/` instead. If you keep hitting permission errors, running the container with `privileged: true` is a simpler (but less locked-down) fallback.
 
 ## Commands
-Once the above variables have been updated, run the bot using the following commands:
 
-Note that if you have changed the above channel name variables in the `config.json` file, the channel commands below will change.
-- `/sendid` followed by the node ID to send a direct message to that node. For example, `/sendid !7c5acfa4`.
-- `/sendnum` followed by the node number to send a direct message to that node. For example, `/sendnum 2086326180`.
-- `/active` to show a list of active nodes seen in the last 15 minutes.
-- `/YOUR_CHANNEL_0` to send a message in channel 0.
-- `/YOUR_CHANNEL_1` to send a message in channel 1.
-- `/YOUR_CHANNEL_2` to send a message in channel 2.
-- `/YOUR_CHANNEL_3` to send a message in channel 3.
-- `/YOUR_CHANNEL_4` to send a message in channel 4.
-- `/YOUR_CHANNEL_5` to send a message in channel 5.
-- `/YOUR_CHANNEL_6` to send a message in channel 6.
-- `/YOUR_CHANNEL_7` to send a message in channel 7.
-- `/help` to show a list of available bot commands.
+Once configured and running, the following slash commands are available in Discord:
+
+- `/reply` — reply to whoever most recently sent a message (or broadcast), automatically routing to a DM or channel broadcast as appropriate.
+- `/sendid` — send a direct message to a node by its hex node ID, e.g. `/sendid !7c5acfa4 Hello!`
+- `/sendnum` — send a direct message to a node by its decimal node number, e.g. `/sendnum 2086326180 Hello!`
+- `/active` — list active nodes seen in the last 15 minutes.
+- `/help` — show a list of available bot commands.
+- One command per configured mesh channel (e.g. `/your_channel_0`, `/your_channel_1`, etc.) — sends a message on that channel. These command names depend on your channel configuration.
 
 ## Quirks
-I've noticed that after running the bot for months on end there are times where it would stop pulling messages unti I would reboot the bot and radio.
 
-I'm not sure if this is specific to the radio itself or not.
-  - Currently my bot is running utilizing a Lilygo T-Beam Supreme.
+After running the bot for months at a time, it can occasionally stop receiving mesh messages until the bot and radio are both rebooted. It's unclear whether this is a bot-side or radio-side issue — it has been observed running a LilyGO T-Beam Supreme.
 
-To get around this issue I have set the bot up as a service on a timer to reboot every night.
-Since I have made this change I have not noticed any messages being hung.
+A simple workaround is to schedule the bot to restart nightly (e.g. via a systemd timer, cron, or Docker's `restart: unless-stopped` combined with a scheduled `docker compose restart`). Since adopting a nightly restart, no further message hangs have been observed.
 
 ## Credits
-The idea for this bot was inspired by the [Meshtastic Discord Bridge](https://github.com/raudette/meshtastic_discord_bridge) created by [raudette](https://github.com/raudette).
+
+Inspired by the [Meshtastic Discord Bridge](https://github.com/raudette/meshtastic_discord_bridge) created by [raudette](https://github.com/raudette).
