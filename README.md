@@ -52,7 +52,7 @@ Notes:
 
 1. Clone the repository and enter the project directory:
    ```bash
-   git clone <your-fork-url>
+   git clone https://github.com/Logan-Fouts/meshtastic-discord-bot.git
    cd Meshtastic-Discord-Bot
    ```
 2. Create and activate a virtual environment:
