@@ -2,7 +2,7 @@
 
 ## Purpose
 
-> This project is a fork of [Kavitate/Meshtastic-Discord-Bot](https://github.com/Kavitate/Meshtastic-Discord-Bot). Credit to the original author for the base bot design and command structure — this fork extends it with environment-variable configuration, Docker support, and some auto-reply fixes.
+> This project is a fork of [Kavitate/Meshtastic-Discord-Bot](https://github.com/Kavitate/Meshtastic-Discord-Bot). Credit to the original author for the base bot design and command structure — this fork extends it with environment-variable configuration, Docker support, and some new features.
 
 This Discord bot bridges a [Meshtastic](https://meshtastic.org/) mesh network directly into a Discord server, using a Meshtastic-compatible device connected over serial/USB.
 
